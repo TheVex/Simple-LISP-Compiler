@@ -1,0 +1,1 @@
+(setq x '(minus 12 7)) // x gets the list (minus 12 7)

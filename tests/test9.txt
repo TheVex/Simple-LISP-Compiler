@@ -1,0 +1,8 @@
+(setq x 2)
+(setq y 3)
+(prog ((x x) (y y))
+	(setq x (times x y))
+	(cond (nonequal x y) 
+		(setq y x) 
+		(setq y (plus y 2)))
+	(return y))

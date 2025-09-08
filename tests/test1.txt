@@ -1,0 +1,2 @@
+(setq x (minus 12 7)) // x gets the value 5
+(quote x) 

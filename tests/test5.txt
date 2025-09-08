@@ -1,0 +1,2 @@
+(setq Z (lambda (a) (cond (equal a z) true false)))
+(setq answer (Z b)) // false

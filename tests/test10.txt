@@ -1,0 +1,2 @@
+(setq x '(plus 2 3))
+(eval x) // 5
