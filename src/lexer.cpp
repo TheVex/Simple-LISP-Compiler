@@ -74,6 +74,9 @@ Token Lexer::next_token() {
   while (current_char != EOF) {
     skip_whitespace();
 
+    if (current_char == EOF)
+      break;
+
     if (std::isdigit(current_char)) {
       return parse_number(); // integer or real
     } else if (std::isalpha(current_char)) {
@@ -82,8 +85,8 @@ Token Lexer::next_token() {
       return parse_string();
     } else {
       std::string buffer(1, current_char);
-      Token token(buffer, Str2Token(buffer), position);
       advance();
+      Token token(buffer, Str2Token(buffer), position);
       return token;
     }
   }
