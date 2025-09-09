@@ -1,2 +1,2 @@
 (func TripleSum (x y z) (plus (plus x y) z)
-(SumAndTimes 1 2 3) // 6
+(SumAndTimes 1 2 3)

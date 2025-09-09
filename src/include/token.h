@@ -59,10 +59,10 @@ static const std::regex reg_whitespace("( |\t)");
 static const std::regex reg_eol("\\n");
 static const std::regex reg_eof("$");
 
-static const std::regex reg_real("-?\d+.\d+");
+static const std::regex reg_real("-?\\d+.\\d+");
 static const std::regex reg_bool("true|false");
 static const std::regex reg_null("null");
-static const std::regex reg_int("\d+");
+static const std::regex reg_int("\\d+");
 static const std::regex reg_str("\"[^\"]*\"");
 static const std::regex reg_var("[^\"]+");
 
