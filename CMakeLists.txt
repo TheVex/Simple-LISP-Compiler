@@ -1,21 +1,45 @@
-﻿# CMakeList.txt: проект CMake для Simple LISP Compiler; включите исходный код и определения,
-# укажите здесь логику для конкретного проекта.
-#
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required(VERSION 3.8)
 
-# Включение горячей перезагрузки для компиляторов MSVC, если поддерживается.
+# Enable hot reload for MSVC compilers if supported
 if (POLICY CMP0141)
-  cmake_policy(SET CMP0141 NEW)
-  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+    cmake_policy(SET CMP0141 NEW)
+    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
-project ("Simple LISP Compiler")
+project("Simple-LISP-Compiler"
+        VERSION 0.1.0
+        DESCRIPTION "A simple LISP compiler"
+        LANGUAGES CXX)
 
-# Добавьте источник в исполняемый файл этого проекта.
-add_executable (CMakeTarget "src/main.cpp" "sLISPcomp.h")
+# Collect all source files
+file(GLOB_RECURSE SOURCES
+     "src/*.cpp"
+)
 
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET CMakeTarget PROPERTY CXX_STANDARD 20)
-endif()
+# Set include directories
+include_directories(
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/include"
+)
 
-# TODO: Добавьте тесты и целевые объекты, если это необходимо.
+# Create the executable
+add_executable(slisp ${SOURCES})
+
+# Set C++ standard
+set_target_properties(slisp PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF
+)
+
+# Set output directory
+set_target_properties(slisp PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
+# Installation instructions
+install(TARGETS slisp
+        RUNTIME DESTINATION bin)
+
+# Copy test files to the binary directory for easy access during testing
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests/"
+     DESTINATION "${CMAKE_BINARY_DIR}/bin/tests")
