@@ -1,0 +1,2 @@
+(setq x '(1 "2" 3))
+(setq y (cons (head x) (tail x)))

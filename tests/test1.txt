@@ -1,0 +1,2 @@
+(setq x (minus 12.1 7))
+(quote x)
