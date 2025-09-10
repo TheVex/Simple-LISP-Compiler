@@ -1,1 +1,1 @@
-(not (and (or (islist '(plus minus times)) (lesseq 8 6)) (xor (isint 15) (greatereq 12 12))))
+(setq x (not (and (or (islist '(plus minus times)) (lesseq 8 6)) (xor (isint 15) (greatereq 12 12))))))
