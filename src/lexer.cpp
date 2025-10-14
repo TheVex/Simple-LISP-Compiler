@@ -1,5 +1,7 @@
-#include "include/lexer.h"
-#include "include/token.h"
+#include "lexer.h"
+#include "token.h"
+#include <cctype>
+#include <string>
 
 Lexer::Lexer(std::string::iterator begin, std::string::iterator end) {
   this->begin = begin;

@@ -71,7 +71,10 @@ inline void print_node(Node* n, int depth = 0) {
     case NodeType::NT_NULL:   std::cout << "NULL\n"; break;
     case NodeType::NT_IDENT:  std::cout << "IDENT(" << n->str << ")\n"; break;
     case NodeType::NT_STRING: std::cout << "STRING(" << n->str << ")\n"; break;
-    case NodeType::NT_QUOTE:  std::cout << "QUOTE\n"; break;
+    case NodeType::NT_QUOTE:  
+        std::cout << "QUOTE\n"; 
+        for (auto c : n->children) print_node(c, depth + 1);
+        break;
     case NodeType::NT_LIST:
         std::cout << "LIST\n";
         for (auto c : n->children) print_node(c, depth + 1);
