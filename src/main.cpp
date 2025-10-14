@@ -1,42 +1,40 @@
 #include "include/lexer.h"
 #include "include/token.h"
+#include "lexer_wrapper.cpp"
+#include "parser.tab.hpp"
 #include <fstream>
 #include <iostream>
+#include <memory>
 
-int main(int argc, char *argv[]) {
-  if (argc != 2) {
-    std::cerr << "Wrong count of arguments\n";
-    return 1;
-  }
-  std::ifstream file(argv[1]);
-  if (!file.is_open()) {
-    std::cerr << "Could not open the file '" << argv[1] << "'\n";
-    return 2;
-  }
+extern int yyparse();
 
-  std::string fileContent((std::istreambuf_iterator<char>(file)),
-                          std::istreambuf_iterator<char>());
-  file.close();
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        std::cerr << "Usage: slisp <source-file>\n";
+        return 1;
+    }
 
-  Lexer lexer(fileContent.begin(), fileContent.end());
+    std::ifstream file(argv[1]);
+    if (!file.is_open()) {
+        std::cerr << "Could not open file '" << argv[1] << "'\n";
+        return 2;
+    }
 
-  Token token = lexer.next_token();
-  int tokenCount = 0;
+    std::string content((std::istreambuf_iterator<char>(file)),
+        std::istreambuf_iterator<char>());
+    file.close();
 
-  std::cout << "Tokens in file '" << argv[1] << "':\n";
-  std::cout << "----------------------------------------------\n";
-  std::cout << "| # | Type | Position | Value |\n";
-  std::cout << "----------------------------------------------\n";
+    std::unique_ptr<Lexer> lexer = std::make_unique<Lexer>(content.begin(), content.end());
+    g_lexer = lexer.get();
 
-  while (token.type != TOKEN_EOF) {
-    tokenCount++;
-    std::cout << "| " << tokenCount << " | " << Token2TokenName(token.type)
-              << " | " << token.position << " | '" << token.value << "' |\n";
-    token = lexer.next_token();
-  }
+    std::cout << "Parsing file: " << argv[1] << "\n";
+    int result = yyparse();
 
-  std::cout << "----------------------------------------------\n";
-  std::cout << "Total tokens: " << tokenCount << "\n";
+    if (result == 0)
+        std::cout << "Parsing completed successfully.\n";
+    else
+        std::cerr << "Parsing failed.\n";
 
-  return 0;
+    g_lexer = nullptr;
+    return result;
 }
