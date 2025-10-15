@@ -2,6 +2,7 @@
 #include "token.h"
 #include <cctype>
 #include <string>
+#include <iostream>
 
 Lexer::Lexer(std::string::iterator begin, std::string::iterator end) {
   this->begin = begin;
@@ -53,24 +54,37 @@ Token Lexer::parse_number() {
 }
 
 Token Lexer::parse_word() {
-  std::string buffer;
-  while (std::isalpha(current_char)) {
-    buffer += current_char;
-    advance();
-  }
-  return Token(buffer, Str2Token(buffer), position);
+    std::string buffer;
+    // allow letters, digits and underscore in subsequent characters
+    if (current_char != EOF) {
+        // collect first char (if it's a letter or underscore)
+        if (std::isalpha(current_char) || current_char == '_') {
+            buffer += current_char;
+            advance();
+        }
+    }
+    while (current_char != EOF && (std::isalnum(current_char) || current_char == '_')) {
+        buffer += current_char;
+        advance();
+    }
+    return Token(buffer, Str2Token(buffer), position);
 }
 
 Token Lexer::parse_string() {
-  std::string buffer;
-  advance(); // skip the opening quote
-  while (current_char != '"' && current_char != EOF) {
-    buffer += current_char;
-    advance();
-  }
-  advance(); // skip the closing quote
-  return Token(buffer, TokenType::TOKEN_STR, position);
+    std::string buffer;
+    advance(); // skip opening quote
+    while (current_char != '"' && current_char != EOF) {
+        buffer += current_char;
+        advance();
+    }
+    if (current_char == EOF) {
+        std::cerr << "Lexer error: unterminated string at position " << position << "\n";
+        return Token("", TokenType::TOKEN_EOF, position);
+    }
+    advance(); // skip closing quote
+    return Token(buffer, TokenType::TOKEN_STR, position);
 }
+
 
 Token Lexer::next_token() {
   while (current_char != EOF) {
@@ -89,6 +103,9 @@ Token Lexer::next_token() {
       std::string buffer(1, current_char);
       advance();
       Token token(buffer, Str2Token(buffer), position);
+      if (token.type == UNDEFINED) {
+          std::cerr << "Lexer error: unknown character '" << buffer << "' at pos " << position << "\n";
+      }
       return token;
     }
   }

@@ -12,6 +12,8 @@ class Node;
 Node* g_root = nullptr;
 %}
 
+%locations
+
 %union {
     void* ptr_val;
 }

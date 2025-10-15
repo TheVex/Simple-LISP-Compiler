@@ -61,7 +61,7 @@ inline Node* make_quote_node(Node* child) {
     return n;
 }
 
-// Утилита для печати AST (простая)
+// Printing AST tree
 inline void print_node(Node* n, int depth = 0) {
     for (int i = 0; i < depth; i++) std::cout << "  ";
     switch (n->type) {

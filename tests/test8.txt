@@ -1,2 +1,4 @@
 (setq x '(1 "2" 3))
 (setq y (cons (head x) (tail x)))
+(plus 1 2)
+(func Cube (x) (times (times x x) x))
