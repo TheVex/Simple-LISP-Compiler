@@ -1,42 +1,48 @@
-#include "include/lexer.h"
-#include "include/token.h"
+#include "lexer.h"
+
+#include "parser.tab.h"
+#include "parser_interface.h"
 #include <fstream>
 #include <iostream>
+#include <memory>
+#include <string>
 
+int yyparse();
 int main(int argc, char *argv[]) {
   if (argc != 2) {
-    std::cerr << "Wrong count of arguments\n";
+    std::cerr << "Usage: slisp <source-file>\n";
     return 1;
   }
+
   std::ifstream file(argv[1]);
   if (!file.is_open()) {
-    std::cerr << "Could not open the file '" << argv[1] << "'\n";
+    std::cerr << "Could not open file '" << argv[1] << "'\n";
     return 2;
   }
 
-  std::string fileContent((std::istreambuf_iterator<char>(file)),
-                          std::istreambuf_iterator<char>());
+  std::string content((std::istreambuf_iterator<char>(file)),
+                      std::istreambuf_iterator<char>());
   file.close();
 
-  Lexer lexer(fileContent.begin(), fileContent.end());
+  std::unique_ptr<Lexer> lexer =
+      std::make_unique<Lexer>(content.begin(), content.end());
+  g_lexer = lexer.get();
 
-  Token token = lexer.next_token();
-  int tokenCount = 0;
+  std::cout << "Parsing file: " << argv[1] << "\n";
+  int result = yyparse();
 
-  std::cout << "Tokens in file '" << argv[1] << "':\n";
-  std::cout << "----------------------------------------------\n";
-  std::cout << "| # | Type | Position | Value |\n";
-  std::cout << "----------------------------------------------\n";
-
-  while (token.type != TOKEN_EOF) {
-    tokenCount++;
-    std::cout << "| " << tokenCount << " | " << Token2TokenName(token.type)
-              << " | " << token.position << " | '" << token.value << "' |\n";
-    token = lexer.next_token();
+  if (result == 0) {
+    std::cout << "Parsing completed successfully.\n";
+    if (g_root) {
+      std::cout << "\nAST:\n";
+      print_node(g_root);
+      delete g_root;
+      g_root = nullptr;
+    }
+  } else {
+    std::cerr << "Parsing failed.\n";
   }
 
-  std::cout << "----------------------------------------------\n";
-  std::cout << "Total tokens: " << tokenCount << "\n";
-
-  return 0;
+  g_lexer = nullptr;
+  return result;
 }

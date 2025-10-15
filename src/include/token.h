@@ -1,7 +1,6 @@
 #ifndef SLISPCOMP_TOKEN_H
 #define SLISPCOMP_TOKEN_H
 
-#include <regex>
 #include <string>
 
 enum TokenType {
@@ -35,6 +34,25 @@ enum TokenType {
   TOKEN_BREAK,
   TOKEN_PLUS,
   TOKEN_MINUS,
+  TOKEN_TIMES,
+  TOKEN_DIVIDE,
+  TOKEN_EQUAL,
+  TOKEN_NONEQUAL,
+  TOKEN_LESS,
+  TOKEN_LESSEQ,
+  TOKEN_GREATER,
+  TOKEN_GREATEREQ,
+  TOKEN_ISINT,
+  TOKEN_ISREAL,
+  TOKEN_ISBOOL,
+  TOKEN_ISNULL,
+  TOKEN_ISATOM,
+  TOKEN_ISLIST,
+  TOKEN_AND,
+  TOKEN_OR,
+  TOKEN_XOR,
+  TOKEN_NOT,
+  TOKEN_EVAL,
 
   UNDEFINED,
 };
@@ -51,31 +69,5 @@ public:
 
 TokenType Str2Token(std::string str);
 std::string Token2TokenName(TokenType type);
-
-static const std::regex reg_bracket_l("\\(");
-static const std::regex reg_bracket_r("\\)");
-static const std::regex reg_apostrophe("'");
-static const std::regex reg_whitespace("( |\t)");
-static const std::regex reg_eol("\\n");
-static const std::regex reg_eof("$");
-
-static const std::regex reg_real("-?\\d+.\\d+");
-static const std::regex reg_bool("true|false");
-static const std::regex reg_null("null");
-static const std::regex reg_int("\\d+");
-static const std::regex reg_str("\"[^\"]*\"");
-static const std::regex reg_var("[^\"]+");
-
-static const std::regex reg_quote("quote");
-static const std::regex reg_setq("setq");
-static const std::regex reg_func("func");
-static const std::regex reg_lambda("lambda");
-static const std::regex reg_prog("prog");
-static const std::regex reg_cond("cond");
-static const std::regex reg_while("while");
-static const std::regex reg_return("return");
-static const std::regex reg_break("break");
-static const std::regex reg_plus("plus");
-static const std::regex reg_minus("minus");
 
 #endif // SLISPCOMP_TOKEN_H
