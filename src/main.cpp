@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include "semantic_analyzer.h"
 
 #include "parser.tab.h"
 #include "parser_interface.h"
@@ -9,9 +10,14 @@
 
 int yyparse();
 int main(int argc, char *argv[]) {
-  if (argc != 2) {
-    std::cerr << "Usage: slisp <source-file>\n";
+  if (argc < 2 || argc > 3) {
+    std::cerr << "Usage: slisp <source-file> [--no-optimize]\n";
     return 1;
+  }
+
+  bool enable_optimizations = true;
+  if (argc == 3 && std::string(argv[2]) == "--no-optimize") {
+    enable_optimizations = false;
   }
 
   std::ifstream file(argv[1]);
@@ -32,15 +38,44 @@ int main(int argc, char *argv[]) {
   int result = yyparse();
 
   if (result == 0) {
-    std::cout << "Parsing completed successfully.\n";
+    std::cout << "Parsing completed successfully\n";
     if (g_root) {
-      std::cout << "\nAST:\n";
+      std::cout << "\n=== Original AST ===\n";
       print_node(g_root);
+
+      // Run semantic analysis
+      std::cout << "\n=== Running Semantic Analysis ===\n";
+      SemanticAnalyzer analyzer(enable_optimizations, false, 3);
+      Node *analyzed_root = analyzer.analyze(g_root);
+
+      // Print errors and warnings
+      if (analyzer.has_errors()) {
+        std::cout << "\n=== Semantic Errors ===\n";
+        analyzer.print_errors();
+      } else {
+        std::cout << "No semantic errors found.\n";
+      }
+
+      if (!analyzer.get_warnings().empty()) {
+        std::cout << "\n=== Warnings ===\n";
+        analyzer.print_warnings();
+      }
+
+      // Print optimized AST if optimizations were applied
+      if (enable_optimizations && !analyzer.has_errors()) {
+        std::cout << "\n=== Optimized AST ===\n";
+        print_node(analyzed_root);
+      }
+
+      // Clean up
+      if (analyzed_root && analyzed_root != g_root) {
+        delete analyzed_root;
+      }
       delete g_root;
       g_root = nullptr;
     }
   } else {
-    std::cerr << "Parsing failed.\n";
+    std::cerr << "Parsing failed\n";
   }
 
   g_lexer = nullptr;

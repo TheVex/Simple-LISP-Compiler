@@ -1,0 +1,2 @@
+(func Add (x y) (plus x y))
+(setq result (Add 1 2 3))
