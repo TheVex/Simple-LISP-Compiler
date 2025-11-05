@@ -7,54 +7,44 @@
 #include <string>
 #include <vector>
 
-// Semantic error types
-enum class SemanticErrorType {
-  UNDEFINED_VARIABLE,
-  UNDEFINED_FUNCTION,
-  BREAK_OUTSIDE_LOOP,
-  RETURN_OUTSIDE_FUNCTION,
-  FUNCTION_ARITY_MISMATCH,
-  TYPE_MISMATCH,
-  DUPLICATE_PARAMETER,
-  DUPLICATE_FUNCTION
+enum class LispType {
+  TYPE_UNKNOWN,
+  TYPE_INT,
+  TYPE_REAL,
+  TYPE_BOOL,
+  TYPE_STRING,
+  TYPE_LIST,
+  TYPE_NULL,
+  TYPE_ANY
 };
 
-// Semantic error information
-struct SemanticError {
-  SemanticErrorType type;
-  std::string message;
-  std::string context;
-
-  SemanticError(SemanticErrorType t, const std::string &msg,
-                const std::string &ctx = "")
-      : type(t), message(msg), context(ctx) {}
-};
-
-// Function signature for type checking
 struct FunctionSignature {
   std::string name;
-  int arity;                       // number of parameters
-  std::vector<std::string> params; // parameter names
-  Node *body;                      // function body for inlining
+  LispType return_type;
+  std::vector<std::string> params;
+  std::vector<LispType> param_types;
+  Node *body;
 
-  FunctionSignature() : arity(0), body(nullptr) {}
-  FunctionSignature(const std::string &n, int a,
-                    const std::vector<std::string> &p, Node *b = nullptr)
-      : name(n), arity(a), params(p), body(b) {}
+  FunctionSignature() : return_type(LispType::TYPE_ANY), body(nullptr) {}
+  FunctionSignature(const std::string &n, LispType ret,
+                    const std::vector<std::string> &p,
+                    const std::vector<LispType> &pt, Node *b = nullptr)
+      : name(n), return_type(ret), params(p), param_types(pt), body(b) {}
 };
 
-// Semantic analysis context
 struct AnalysisContext {
-  std::map<std::string, FunctionSignature> functions; // defined functions
-  std::set<std::string> variables; // defined variables in current scope
-  std::vector<std::set<std::string>> scopes; // scope stack
-  bool in_loop;                              // are we inside a loop?
-  bool in_function;                          // are we inside a function?
-  int function_depth;                        // nesting level of functions
+  std::map<std::string, FunctionSignature> functions;
+  std::map<std::string, LispType> variables;
+  std::vector<std::map<std::string, LispType>> scopes;
+  bool in_loop;
+  bool in_function;
+  LispType current_function_return_type;
 
-  AnalysisContext() : in_loop(false), in_function(false), function_depth(0) {}
+  AnalysisContext()
+      : in_loop(false), in_function(false),
+        current_function_return_type(LispType::TYPE_ANY) {}
 
-  void enter_scope() { scopes.push_back(std::set<std::string>()); }
+  void enter_scope() { scopes.push_back(std::map<std::string, LispType>()); }
 
   void exit_scope() {
     if (!scopes.empty()) {
@@ -62,22 +52,29 @@ struct AnalysisContext {
     }
   }
 
-  void add_variable(const std::string &name) {
+  void add_variable(const std::string &name, LispType type) {
     if (!scopes.empty()) {
-      scopes.back().insert(name);
+      scopes.back()[name] = type;
     }
-    variables.insert(name);
+    variables[name] = type;
+  }
+
+  LispType get_variable_type(const std::string &name) const {
+    for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
+      auto var_it = it->find(name);
+      if (var_it != it->end()) {
+        return var_it->second;
+      }
+    }
+    auto var_it = variables.find(name);
+    if (var_it != variables.end()) {
+      return var_it->second;
+    }
+    return LispType::TYPE_UNKNOWN;
   }
 
   bool is_variable_defined(const std::string &name) const {
-    // Check current scopes
-    for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
-      if (it->find(name) != it->end()) {
-        return true;
-      }
-    }
-    // Check global variables
-    return variables.find(name) != variables.end();
+    return get_variable_type(name) != LispType::TYPE_UNKNOWN;
   }
 
   void add_function(const std::string &name, const FunctionSignature &sig) {
@@ -97,72 +94,46 @@ struct AnalysisContext {
   }
 };
 
-// Main Semantic Analyzer class
 class SemanticAnalyzer {
 private:
-  std::vector<SemanticError> errors_;
-  std::vector<SemanticError> warnings_;
+  std::vector<std::string> errors_;
+  std::vector<std::string> warnings_;
   AnalysisContext context_;
-  bool enable_optimizations_;
   bool enable_function_inlining_;
-  int inline_threshold_; // max statements to inline
 
-  // Helper methods for semantic checks
   void analyze_node(Node *node);
   void analyze_list(Node *node);
   void check_setq(Node *node);
   void check_func(Node *node);
   void check_lambda(Node *node);
   void check_prog(Node *node);
-  void check_cond(Node *node);
   void check_while(Node *node);
   void check_return(Node *node);
   void check_break(Node *node);
   void check_function_call(Node *node);
 
-  // Helper methods for optimizations
+  LispType infer_type(Node *node);
+  bool check_type_compatibility(LispType expected, LispType actual);
+  std::string type_to_string(LispType type);
+
   Node *optimize_node(Node *node);
-  Node *constant_fold(Node *node);
   Node *remove_unreachable_code(Node *node);
   Node *inline_function_call(Node *node, const std::string &func_name);
-  bool is_pure_function(const std::string &name) const;
-  bool can_inline_function(const FunctionSignature *sig) const;
-  int count_statements(Node *node) const;
+  bool should_inline_function(const FunctionSignature *sig);
 
-  // Helper methods for node evaluation
-  bool is_constant_expression(Node *node) const;
-  Node *evaluate_constant_expression(Node *node);
-  bool evaluate_arithmetic(const std::string &op, Node *left, Node *right,
-                           Node *&result);
-
-  // Utility methods
-  void add_error(SemanticErrorType type, const std::string &message,
-                 const std::string &context = "");
-  void add_warning(SemanticErrorType type, const std::string &message,
-                   const std::string &context = "");
-  std::string node_to_string(Node *node) const;
-  Node *clone_node(Node *node) const;
+  Node *clone_node(Node *node);
   Node *substitute_parameters(Node *body,
                               const std::vector<std::string> &params,
                               const std::vector<Node *> &args);
+  void add_error(const std::string &message);
+  void add_warning(const std::string &message);
 
 public:
-  SemanticAnalyzer(bool enable_optimizations = true,
-                   bool enable_function_inlining = false,
-                   int inline_threshold = 3)
-      : enable_optimizations_(enable_optimizations),
-        enable_function_inlining_(enable_function_inlining),
-        inline_threshold_(inline_threshold) {}
+  SemanticAnalyzer(bool enable_inlining = true)
+      : enable_function_inlining_(enable_inlining) {}
 
-  // Main analysis entry point
   Node *analyze(Node *root);
-
-  // Error and warning accessors
-  const std::vector<SemanticError> &get_errors() const { return errors_; }
-  const std::vector<SemanticError> &get_warnings() const { return warnings_; }
   bool has_errors() const { return !errors_.empty(); }
-
-  // Print errors and warnings
   void print_errors() const;
   void print_warnings() const;
 };

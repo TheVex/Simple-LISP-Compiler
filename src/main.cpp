@@ -43,12 +43,9 @@ int main(int argc, char *argv[]) {
       std::cout << "\n=== Original AST ===\n";
       print_node(g_root);
 
-      // Run semantic analysis
-      std::cout << "\n=== Running Semantic Analysis ===\n";
-      SemanticAnalyzer analyzer(enable_optimizations, false, 3);
+      SemanticAnalyzer analyzer(enable_optimizations);
       Node *analyzed_root = analyzer.analyze(g_root);
 
-      // Print errors and warnings
       if (analyzer.has_errors()) {
         std::cout << "\n=== Semantic Errors ===\n";
         analyzer.print_errors();
@@ -56,18 +53,13 @@ int main(int argc, char *argv[]) {
         std::cout << "No semantic errors found.\n";
       }
 
-      if (!analyzer.get_warnings().empty()) {
-        std::cout << "\n=== Warnings ===\n";
-        analyzer.print_warnings();
-      }
+      analyzer.print_warnings();
 
-      // Print optimized AST if optimizations were applied
-      if (enable_optimizations && !analyzer.has_errors()) {
+      if (!analyzer.has_errors()) {
         std::cout << "\n=== Optimized AST ===\n";
         print_node(analyzed_root);
       }
 
-      // Clean up
       if (analyzed_root && analyzed_root != g_root) {
         delete analyzed_root;
       }

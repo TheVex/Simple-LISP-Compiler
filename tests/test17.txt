@@ -1,3 +1,0 @@
-(setq x 10)
-(setq result (UndefinedFunction x 20))
-(setq y 30)
