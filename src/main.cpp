@@ -1,3 +1,4 @@
+#include "interpreter.h"
 #include "lexer.h"
 #include "semantic_analyzer.h"
 
@@ -10,14 +11,26 @@
 
 int yyparse();
 int main(int argc, char *argv[]) {
-  if (argc < 2 || argc > 3) {
-    std::cerr << "Usage: slisp <source-file> [--no-optimize]\n";
+  if (argc < 2 || argc > 4) {
+    std::cerr << "Usage: slisp <source-file> [OPTIONS]\n";
+    std::cerr << "\nOptions:\n";
+    std::cerr << "  --interpret      Run the program using the interpreter\n";
+    std::cerr << "  --no-optimize    Disable semantic optimizations\n";
+    std::cerr << "\nExample:\n";
+    std::cerr << "  slisp program.lisp --interpret\n";
     return 1;
   }
 
   bool enable_optimizations = true;
-  if (argc == 3 && std::string(argv[2]) == "--no-optimize") {
-    enable_optimizations = false;
+  bool interpret_mode = false;
+
+  for (int i = 2; i < argc; i++) {
+    std::string arg = argv[i];
+    if (arg == "--no-optimize") {
+      enable_optimizations = false;
+    } else if (arg == "--interpret") {
+      interpret_mode = true;
+    }
   }
 
   std::ifstream file(argv[1]);
@@ -58,6 +71,12 @@ int main(int argc, char *argv[]) {
       if (!analyzer.has_errors()) {
         std::cout << "\n=== Optimized AST ===\n";
         print_node(analyzed_root);
+
+        if (interpret_mode) {
+          std::cout << "\n=== Interpretation ===\n";
+          Interpreter interpreter;
+          interpreter.interpret(analyzed_root);
+        }
       }
 
       if (analyzed_root && analyzed_root != g_root) {
