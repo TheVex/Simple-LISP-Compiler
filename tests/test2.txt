@@ -1,1 +1,55 @@
-(setq x '(minus 12 7))
+(print "Lambda Expressions Example")
+
+(setq square (lambda (x) (times x x)))
+(print "square(5) =" (square 5))
+(print "square(9) =" (square 9))
+
+(setq add (lambda (a b) (plus a b)))
+(print "add(10, 20) =" (add 10 20))
+
+(setq multiply (lambda (x y) (times x y)))
+(print "multiply(7, 8) =" (multiply 7 8))
+
+(setq max_of_two (lambda (a b)
+  (cond (greater a b)
+    a
+    b
+  )
+))
+(print "max(15, 23) =" (max_of_two 15 23))
+(print "max(40, 30) =" (max_of_two 40 30))
+
+(setq is_even (lambda (n)
+  (equal (times (divide n 2) 2) n)
+))
+(print "is_even(4) =" (is_even 4))
+(print "is_even(7) =" (is_even 7))
+(print "is_even(10) =" (is_even 10))
+
+(setq sum_of_squares (lambda (a b)
+  (plus (times a a) (times b b))
+))
+(print "sum_of_squares(3, 4) =" (sum_of_squares 3 4))
+
+(func apply_twice (f x)
+  (f (f x))
+)
+
+(setq increment (lambda (n) (plus n 1)))
+(print "apply_twice(increment, 5) =" (apply_twice increment 5))
+
+(setq double (lambda (n) (times n 2)))
+(print "apply_twice(double, 3) =" (apply_twice double 3))
+
+(func map_range (f start end)
+  (prog
+    ((i start))
+    (while (lesseq i end)
+      (print "f("i") =" (f i))
+      (setq i (plus i 1))
+    )
+  )
+)
+
+(print "Mapping square function over range 1 to 5:")
+(map_range square 1 5)

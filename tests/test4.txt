@@ -1,2 +1,20 @@
-(func Nothing () null)
-(Nothing)
+(func factorial (n)
+  (cond (lesseq n 1)
+    1
+    (times n (factorial (minus n 1)))))
+
+(print "Factorial of 5:" (factorial 5))
+(print "Factorial of 6:" (factorial 6))
+(print "Factorial of 7:" (factorial 7))
+(print "Factorial of 10:" (factorial 10))
+
+(func factorial_iter (n)
+  (prog
+    ((result 1) (i 1))
+    (while (lesseq i n)
+      (setq result (times result i))
+      (setq i (plus i 1)))
+    result))
+
+(print "Iterative factorial of 5:" (factorial_iter 5))
+(print "Iterative factorial of 10:" (factorial_iter 10))
