@@ -1,6 +1,7 @@
 #include "semantic_analyzer.h"
 #include <iostream>
 #include <sstream>
+#include <functional>
 
 Node *SemanticAnalyzer::analyze(Node *root) {
   if (!root) {
