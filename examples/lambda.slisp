@@ -45,7 +45,7 @@
   (prog
     ((i start))
     (while (lesseq i end)
-      (print "f("i") =" (f i))
+      (print "f(" i ") =" (f i))
       (setq i (plus i 1))
     )
   )

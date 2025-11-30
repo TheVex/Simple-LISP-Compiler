@@ -1,4 +1,6 @@
+#include "interpreter.h"
 #include "lexer.h"
+#include "semantic_analyzer.h"
 
 #include "parser.tab.h"
 #include "parser_interface.h"
@@ -9,9 +11,26 @@
 
 int yyparse();
 int main(int argc, char *argv[]) {
-  if (argc != 2) {
-    std::cerr << "Usage: slisp <source-file>\n";
+  if (argc < 2 || argc > 4) {
+    std::cerr << "Usage: slisp <source-file> [OPTIONS]\n";
+    std::cerr << "\nOptions:\n";
+    std::cerr << "  --interpret      Run the program using the interpreter\n";
+    std::cerr << "  --no-optimize    Disable semantic optimizations\n";
+    std::cerr << "\nExample:\n";
+    std::cerr << "  slisp program.lisp --interpret\n";
     return 1;
+  }
+
+  bool enable_optimizations = true;
+  bool interpret_mode = false;
+
+  for (int i = 2; i < argc; i++) {
+    std::string arg = argv[i];
+    if (arg == "--no-optimize") {
+      enable_optimizations = false;
+    } else if (arg == "--interpret") {
+      interpret_mode = true;
+    }
   }
 
   std::ifstream file(argv[1]);
@@ -32,15 +51,42 @@ int main(int argc, char *argv[]) {
   int result = yyparse();
 
   if (result == 0) {
-    std::cout << "Parsing completed successfully.\n";
+    std::cout << "Parsing completed successfully\n";
     if (g_root) {
-      std::cout << "\nAST:\n";
+      std::cout << "\n=== Original AST ===\n";
       print_node(g_root);
+
+      SemanticAnalyzer analyzer(enable_optimizations);
+      Node *analyzed_root = analyzer.analyze(g_root);
+
+      if (analyzer.has_errors()) {
+        std::cout << "\n=== Semantic Errors ===\n";
+        analyzer.print_errors();
+      } else {
+        std::cout << "No semantic errors found.\n";
+      }
+
+      analyzer.print_warnings();
+
+      if (!analyzer.has_errors()) {
+        std::cout << "\n=== Optimized AST ===\n";
+        print_node(analyzed_root);
+
+        if (interpret_mode) {
+          std::cout << "\n=== Interpretation ===\n";
+          Interpreter interpreter;
+          interpreter.interpret(analyzed_root);
+        }
+      }
+
+      if (analyzed_root && analyzed_root != g_root) {
+        delete analyzed_root;
+      }
       delete g_root;
       g_root = nullptr;
     }
   } else {
-    std::cerr << "Parsing failed.\n";
+    std::cerr << "Parsing failed\n";
   }
 
   g_lexer = nullptr;

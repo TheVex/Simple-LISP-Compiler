@@ -1,0 +1,7 @@
+(print "Hello, World!")
+
+(setq name "LISP")
+(print "Welcome to" name)
+
+(setq x 42)
+(print "The answer is:" x)

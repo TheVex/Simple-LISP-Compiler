@@ -1,0 +1,7 @@
+(func TestUnreachable (x)
+  (setq y (plus x 10))
+  (return y)
+  (setq z 100)
+  (setq w 200))
+
+(setq result (TestUnreachable 5))
